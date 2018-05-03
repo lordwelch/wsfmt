@@ -1,0 +1,671 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"n",
+				"newlineCount\tint ν"
+			],
+			[
+				"pr",
+				"printIdentifier\t ƒ"
+			],
+			[
+				"ItemR",
+				"ItemRightParen\t Ɩ"
+			],
+			[
+				"st",
+				"stateFn\tfunc(*Formatter) stateFn ʈ"
+			],
+			[
+				"fun",
+				"func (*Formatter)\tfunc (...) {...} ʂ"
+			],
+			[
+				"pri",
+				"printIdentifier\t ƒ"
+			],
+			[
+				"for",
+				"formatEnumIdent\tstateFn ƒ"
+			],
+			[
+				"s",
+				"stateFn {}\tfunc() {...} ʂ"
+			],
+			[
+				"ItemEn",
+				"ItemEnum\t Ɩ"
+			],
+			[
+				"nex",
+				"next\tlex.Item ƒ"
+			],
+			[
+				"fo",
+				"format\tstateFn ƒ"
+			],
+			[
+				"r",
+				"ItemRightBrace\t Ɩ"
+			],
+			[
+				"ItemC",
+				"ItemCase\t Ɩ"
+			],
+			[
+				"P",
+				"printnewline\t ƒ"
+			],
+			[
+				"prnt",
+				"printTab\t ƒ"
+			],
+			[
+				"b",
+				"ItemBreak\t Ɩ"
+			],
+			[
+				"p",
+				"peek\tlex.Item ƒ"
+			],
+			[
+				"t",
+				"token\tlex.Item ν"
+			],
+			[
+				"pa",
+				"parenDepth\tint ν"
+			],
+			[
+				"prin",
+				"printIdentifier\t ƒ"
+			],
+			[
+				"l",
+				"ItemLeftParen\t Ɩ"
+			],
+			[
+				"f",
+				"format\tstateFn ƒ"
+			],
+			[
+				"le",
+				"ItemLeftParen\t Ɩ"
+			],
+			[
+				"std",
+				"Stdout\t*os.File ν"
+			],
+			[
+				"func",
+				"func (*stateFn)\tfunc (...) {...} ʂ"
+			],
+			[
+				"Itemst",
+				"ItemStruct\t Ɩ"
+			],
+			[
+				"ne",
+				"newlineCount\t[]int ν"
+			],
+			[
+				"Itemri",
+				"ItemRightBrace\t Ɩ"
+			],
+			[
+				"eo",
+				"eol\tbool ν"
+			],
+			[
+				"C",
+				"Count\tint ƒ"
+			],
+			[
+				"print",
+				"printNewline\t ƒ"
+			],
+			[
+				"ri",
+				"ItemRightBrace\t Ɩ"
+			],
+			[
+				"fu",
+				"func (*Formatter)\tfunc (...) {...} ʂ"
+			],
+			[
+				"ItemT",
+				"ItemType\tint ʈ"
+			],
+			[
+				"If",
+				"ItemIf\t Ɩ"
+			],
+			[
+				"if",
+				"ItemIf\t Ɩ"
+			],
+			[
+				"T",
+				"token\tlex.Item ν"
+			],
+			[
+				"i",
+				"ItemFunction\t Ɩ"
+			],
+			[
+				"ItemE",
+				"ItemError\t Ɩ"
+			],
+			[
+				"sta",
+				"stateFn {}\tfunc() {...} ʂ"
+			],
+			[
+				"I",
+				"ItemComment\t Ɩ"
+			],
+			[
+				"stateFn",
+				"stateFn {}\tfunc() {...} ʂ"
+			],
+			[
+				"ide",
+				"ItemIdentifier\t Ɩ"
+			],
+			[
+				"S",
+				"Sprint\tstring ƒ"
+			],
+			[
+				"ItemP",
+				"ItemLeftParen\t Ɩ"
+			],
+			[
+				"ItemF",
+				"ItemFunction\t Ɩ"
+			],
+			[
+				"For",
+				"Formatter\tstruct ʈ"
+			],
+			[
+				"D",
+				"DecodeBytes\tfunc(b []byte, val interface{}) error ·ƒ"
+			],
+			[
+				"M",
+				"MetaTorrent\tstruct ·ʈ"
+			],
+			[
+				"Me",
+				"metaTorrent\tstruct ·ʈ"
+			],
+			[
+				"curr",
+				"CurrentTorrents\tmap[string]*tf.SeriesTorrent ν"
+			],
+			[
+				"stri",
+				"strings\t package ρ"
+			],
+			[
+				"U",
+				"UploadRatio\tfloat64 ν"
+			],
+			[
+				"env",
+				"environ"
+			],
+			[
+				"File",
+				"FileInfo\tinterface ¡"
+			],
+			[
+				"Is",
+				"IsNotExist\tbool ƒ"
+			],
+			[
+				"Fi",
+				"Filename\tstring ν"
+			],
+			[
+				"e",
+				"Err\terror ƒ"
+			],
+			[
+				"clo",
+				"clobber\tbool ν"
+			],
+			[
+				"do",
+				"downloadFIle\t ƒ"
+			],
+			[
+				"filep",
+				"filepath\t package ρ"
+			],
+			[
+				"fil",
+				"FilePath\tstring ν"
+			],
+			[
+				"get",
+				"getDownloadFilename\t ƒ"
+			],
+			[
+				"cl",
+				"clobber\tbool ν"
+			],
+			[
+				"tor",
+				"torrentName\tstring ν"
+			],
+			[
+				"cur",
+				"CurrentTorrents\tmap[string]*tf.SeriesTorrent ν"
+			],
+			[
+				"to",
+				"torrentName\tstring ν"
+			],
+			[
+				"h",
+				"hash\tstring ν"
+			],
+			[
+				"a",
+				"arg\t package ρ"
+			],
+			[
+				"str",
+				"string\tbuilt-in ʈ"
+			],
+			[
+				"L",
+				"ToLower\tstring ƒ"
+			],
+			[
+				"Cur",
+				"CurrentTorrents\tmap[string]*tf.SeriesTorrent ν"
+			],
+			[
+				"E",
+				"Exit\t ƒ"
+			],
+			[
+				"Std",
+				"Stdin\t*os.File ν"
+			],
+			[
+				"torr",
+				"torrentPath\tstring ν"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "wsfmt.go",
+			"settings":
+			{
+				"buffer_size": 12155,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "inst",
+		"selected_items":
+		[
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"GoSublime: err",
+				"GoSublime: Open Error Log"
+			],
+			[
+				"GoSublime: er",
+				"GoSublime: Open Error Log"
+			],
+			[
+				"control:",
+				"Package Control: Install Package"
+			],
+			[
+				"GoSublime: ",
+				"GoSublime: Restart Margo"
+			],
+			[
+				"rem",
+				"GoSublime: Add/Remove package"
+			],
+			[
+				"package control: i",
+				"Package Control: Install Package"
+			],
+			[
+				"package control:",
+				"Package Control: Remove Package"
+			],
+			[
+				"GoSublime: e",
+				"GoSublime: Show errors"
+			]
+		],
+		"width": 497.0
+	},
+	"console":
+	{
+		"height": 342.0,
+		"history":
+		[
+			"print(os.environ['PATH'])",
+			"import os",
+			"print(os.environ['PATH'])",
+			"env"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt"
+	],
+	"file_history":
+	[
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/wsfmt.sublime-workspace",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/script.sublime-workspace",
+		"/home/timmy/.config/sublime-text-3/Packages/GoSublime/CHANGELOG.md",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/text/lex/lex.go",
+		"/usr/lib/go/src/strings/strings_amd64.go",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/scripts/core/object.ws",
+		"/home/timmy/.config/sublime-text-3/Packages/GoSublime/Default (Linux).sublime-keymap",
+		"/home/timmy/.config/sublime-text-3/Packages/GoSublime/GoSublime.sublime-settings",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/wsfmt.sublime-project",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/wsfmt",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/wsfmt.go",
+		"/home/timmy/.config/sublime-text-3/Packages/User/GoSublime.sublime-settings",
+		"/home/timmy/.config/sublime-text-3/Packages/User/GoSublime/linux-x64/log.txt",
+		"/home/timmy/.config/sublime-text-3/Packages/GoRename/Default (Linux).sublime-keymap",
+		"/home/timmy/.config/sublime-text-3/Packages/User/GoRename.sublime-settings",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt/scripts/engine/entity.ws",
+		"/home/timmy/.config/sublime-text-3/Packages/User/GoSublime/src/margo/margo.go",
+		"/home/timmy/build/bin/gogrepo.py.new",
+		"/home/timmy/build/bin/gogrepo.py",
+		"/home/timmy/GO/src/github.com/lordwelch/test/main.go",
+		"/home/timmy/GO/src/github.com/lordwelch/transmission/client.go",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/TorrentFilter/torrentproject.sublime-project",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/TorrentFilter/type.go",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/TorrentFilter/download/main.go",
+		"/home/timmy/GO/src/github.com/lordwelch/test/pkg/tst.go",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/scene/scene.go",
+		"/home/timmy/GO/src/github.com/lordwelch/transmission/torrent.go",
+		"/usr/lib/go/src/net/net.go",
+		"/home/timmy/.config/sublime-text-3/Packages/User/GoGuru.sublime-settings",
+		"/home/timmy/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/timmy/.config/sublime-text-3/Packages/GoRename/Default.sublime-settings",
+		"/home/timmy/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/usr/lib/go/src/path/filepath/path.go",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/Default (Linux).sublime-mousemap",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/Default (Linux).sublime-keymap",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/Default.sublime-settings",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/dep/shellenv/_posix.py",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/dep/shellenv/_linux/__init__.py",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/goGuru.py",
+		"/home/timmy/.config/sublime-text-3/Packages/GoGuru/dep/shellenv/__init__.py",
+		"/usr/lib/go/src/os/file.go",
+		"/usr/lib/go/src/os/dir.go",
+		"/usr/lib/go/src/os/file_unix.go",
+		"/usr/lib/go/src/os/file_windows.go",
+		"/usr/lib/go/src/os/types.go",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/TorrentFilter/cmd/main.go",
+		"/usr/lib/go/src/os/stat_unix.go",
+		"/home/timmy/GO/src/github.com/cavaliercoder/grab/grab.go",
+		"/home/timmy/GO/src/github.com/cavaliercoder/grab/request.go",
+		"/usr/lib/go/src/net/http/doc.go",
+		"/usr/lib/go/src/net/http/request.go",
+		"/home/timmy/GO/src/github.com/cavaliercoder/grab/client.go",
+		"/usr/lib/go/src/strconv/itoa.go",
+		"/usr/lib/go/src/os/error.go",
+		"/usr/lib/go/src/os/error_unix.go",
+		"/usr/lib/go/src/os/error_windows.go",
+		"/home/timmy/.config/sublime-text-3/Packages/GoSublime/README.md",
+		"/home/timmy/GO/src/timmy.narnian.us/git/timmy/TorrentFilter/download/download",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/qml.go",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/main.go",
+		"/home/timmy/GO/src/gopkg.in/gographics/imagick.v2/imagick/magick_wand_env.go",
+		"/home/timmy/GO/src/github.com/limetext/qml-go/qmlobject.go",
+		"/home/timmy/GO/src/github.com/limetext/qml-go/qmlwindow.go",
+		"/usr/lib/go/src/builtin/builtin.go",
+		"/home/timmy/.config/sublime-text-3/Packages/GoSublime/9o.md",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/qrc.go",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/imagick.go",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/glfw.go",
+		"/home/timmy/GO/src/github.com/lordwelch/PresentationApp/doc.go"
+	],
+	"find":
+	{
+		"height": 40.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"newlineCount",
+			"nil",
+			":",
+			"enum",
+			"ItemBreak",
+			"newlineCount",
+			"eob",
+			"a",
+			"f.eol = true",
+			"printnewline",
+			"f.eol = true",
+			"eol",
+			"case",
+			"return nil",
+			"return",
+			"parenDepth",
+			"formatParameters",
+			"peek",
+			"\"\\n\"))\n}",
+			"\"\\n\"))\n\t\t\t}",
+			"f.peek()",
+			"eol",
+			"ItemNewline",
+			"newlineCount",
+			"tabCount",
+			"if printSingleChar(f) {\n\t\t}",
+			"}",
+			"printTab",
+			"case",
+			"\\n"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "wsfmt.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12155,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1793,
+								1793
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/GoSublime/syntax/GoSublime-Go.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1256.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 38.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.9o:///home/timmy/GO/src/timmy.narnian.us/git/timmy/wsfmt":
+	{
+		"height": 115.0
+	},
+	"output.GoGuru Output":
+	{
+		"height": 0.0
+	},
+	"output.GoRename Output":
+	{
+		"height": 232.0
+	},
+	"output.GoSublime-main-output":
+	{
+		"height": 115.0
+	},
+	"output.GsComplete.completion-hint-output":
+	{
+		"height": 115.0
+	},
+	"output.GsDoc-output-output":
+	{
+		"height": 115.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/GoSublime/GoSublime.sublime-build",
+	"project": "wsfmt.sublime-project",
+	"replace":
+	{
+		"height": 71.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 392.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 268.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

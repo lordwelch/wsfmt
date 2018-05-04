@@ -316,7 +316,6 @@ func formatConditional(f *Formatter) stateFn {
 }
 
 func formatNewLine(f *Formatter) stateFn {
-	printNewline(f)
 
 	switch t := f.peek().Typ; {
 	case t == lex.ItemEOF:
@@ -325,31 +324,12 @@ func formatNewLine(f *Formatter) stateFn {
 		fmt.Print("error:", f.token.Val)
 		return nil
 	case t == lex.ItemCase:
+		printNewline(f)
 		f.scopeLevel = f.scopeLevel[:len(f.scopeLevel)-1]
 		printTab(f)
-	case isChar(t):
-		switch f.nToken.Val {
-		case ":", ",":
-			fmt.Printf("%s ", f.token.Val)
-		case ";":
-			fmt.Print(f.token.Val)
-			f.next()
-			fmt.Print(f.token.Val)
-			if len(f.scopeLevel) > 0 {
-				f.scopeLevel[len(f.scopeLevel)-1] = 1
-			}
-		case "}":
-			// f.scopeLevel = f.scopeLevel[:len(f.scopeLevel)-1]
-			// printTab(f)
-			// fmt.Print("}")
-			f.next()
-			f.peek()
-			return formatRightBrace
-		default:
-			printTab(f)
-		}
-		return format
+	case f.peek().Val == ";" || f.peek().Val == "}":
 	default:
+		printNewline(f)
 		printTab(f)
 	}
 
@@ -418,9 +398,10 @@ func formatEnumChar(f *Formatter) stateFn {
 
 func formatRightBrace(f *Formatter) stateFn {
 	f.scopeLevel = f.scopeLevel[:len(f.scopeLevel)-1]
-	f.newlineCount = -1
-	printNewline(f)
-	printTab(f)
+	if f.pToken.Typ != lex.ItemLeftBrace {
+		fmt.Print("\n")
+		printTab(f)
+	}
 	fmt.Print("}")
 
 	switch f.peek().Typ {

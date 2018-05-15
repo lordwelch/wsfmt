@@ -14,35 +14,42 @@ import (
 
 type stateFn func(*Formatter) stateFn
 
-type FmtSettings struct{}
-
 type Formatter struct {
-	l              *lex.Lexer
-	pToken         lex.Item
-	token          lex.Item
-	nToken         lex.Item
-	state          stateFn
-	maxNewlines    int
-	newlineCount   int
-	scopeLevel     []int
-	tempScopeLevel int
-	eol, CASE      bool
-	parenDepth     int
+	l             *lex.Lexer
+	previousToken lex.Item
+	token         lex.Item
+	nextToken     lex.Item
+	state         stateFn
+	maxNewlines   int
+	newlineCount  int
+	parenDepth    int
+	Output        strings.Builder
+	scopeLevel    []int
+	// Each index is one scope deep delimited by braces or case statement.
+	// the number is how many 'soft' scopes deep it is resets to 1 on newline e.g. an if statement without braces
 }
 
 var (
-	blank = lex.Item{Pos: -1}
-	b     []byte
-	err   error
+	blank  = lex.Item{Pos: -1}
+	b      []byte
+	fmtErr error
 )
 
 func main() {
+
 	file, _ := os.Open(os.Args[1])
-	f := Format(nil, file)
+	f := Format(file)
 	f.run()
+	fmt.Println(f.Output.String())
+	if fmtErr != nil {
+		os.Stdout.Sync()
+		fmt.Fprintln(os.Stderr, "\n", fmtErr)
+		os.Exit(1)
+	}
 }
 
-func Format(typ *FmtSettings, text io.Reader) (f *Formatter) {
+func Format(text io.Reader) (f *Formatter) {
+	var err error
 	FILE := transform.NewReader(text, unicode.BOMOverride(unicode.UTF8.NewDecoder().Transformer))
 	b, err = ioutil.ReadAll(FILE)
 	if err != nil {
@@ -51,19 +58,19 @@ func Format(typ *FmtSettings, text io.Reader) (f *Formatter) {
 	f = &Formatter{}
 	f.l = lex.Lex("name", string(b))
 	f.maxNewlines = 3
-	f.nToken = blank
+	f.nextToken = blank
 	return f
 }
 
 func (f *Formatter) next() lex.Item {
-	f.pToken = f.token
+	f.previousToken = f.token
 	var temp lex.Item
 
-	if f.nToken == blank {
+	if f.nextToken == blank {
 		temp = f.l.NextItem()
 	} else {
-		temp = f.nToken
-		f.nToken = blank
+		temp = f.nextToken
+		f.nextToken = blank
 	}
 	for ; temp.Typ == lex.ItemSpace || temp.Typ == lex.ItemNewline; temp = f.l.NextItem() {
 	}
@@ -73,7 +80,7 @@ func (f *Formatter) next() lex.Item {
 }
 
 func (f *Formatter) peek() lex.Item {
-	if f.nToken == blank {
+	if f.nextToken == blank {
 		temp := f.l.NextItem()
 		count := 0
 		for ; temp.Typ == lex.ItemSpace || temp.Typ == lex.ItemNewline; temp = f.l.NextItem() {
@@ -86,9 +93,9 @@ func (f *Formatter) peek() lex.Item {
 		} else {
 			f.newlineCount = 3
 		}
-		f.nToken = temp
+		f.nextToken = temp
 	}
-	return f.nToken
+	return f.nextToken
 }
 
 func (f *Formatter) run() {
@@ -97,13 +104,17 @@ func (f *Formatter) run() {
 	}
 }
 
+func errorf(format string, args ...interface{}) stateFn {
+	fmtErr = fmt.Errorf(format, args...)
+	return nil
+}
+
 func format(f *Formatter) stateFn {
 	switch t := f.next().Typ; {
 	case t == lex.ItemEOF:
 		return nil
 	case t == lex.ItemError:
-		fmt.Print("error:", f.token.Val)
-		return nil
+		return errorf("error: %s", f.token.Val)
 	case t == lex.ItemComment:
 		f.printComment()
 	case t == lex.ItemFunction:
@@ -111,10 +122,10 @@ func format(f *Formatter) stateFn {
 	case t == lex.ItemIf, t == lex.ItemWhile, t == lex.ItemFor, t == lex.ItemSwitch:
 		return formatConditional
 	case t == lex.ItemElse:
-		if f.pToken.Typ == lex.ItemRightBrace {
-			fmt.Printf(" else")
+		if f.previousToken.Typ == lex.ItemRightBrace {
+			f.Output.WriteString(" else")
 		} else {
-			fmt.Print("else")
+			f.Output.WriteString("else")
 		}
 		if f.peek().Typ != lex.ItemLeftBrace && f.peek().Typ != lex.ItemIf {
 			f.scopeLevel[len(f.scopeLevel)-1]++
@@ -122,9 +133,11 @@ func format(f *Formatter) stateFn {
 			printTab(f)
 		}
 	case t == lex.ItemReturn:
-		fmt.Printf("%s ", f.token.Val)
+		f.Output.WriteString(f.token.Val + " ")
 	case t == lex.ItemModifiers, t == lex.ItemIdentifier, t == lex.ItemNumber, t == lex.ItemBool, t == lex.ItemString:
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("invalid identifier: trailing dot '.'")
+		}
 	case isChar(t):
 		return printChar(f)
 	case t == lex.ItemStruct:
@@ -134,74 +147,76 @@ func format(f *Formatter) stateFn {
 	case t == lex.ItemOperator:
 		printOperator(f)
 	case t == lex.ItemArray:
-		if !printArray(f) {
-			return nil
-		}
+		return formatArray
 	case t == lex.ItemCase:
 		return formatCase
 	case t == lex.ItemEnum:
 		return formatEnum
 	default:
-		fmt.Fprintf(os.Stderr, "\nexpected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
 	return format
 }
 
 func (f *Formatter) printComment() {
-	fmt.Printf("%s", f.token.Val)
+	f.Output.WriteString(f.token.Val)
 	printNewline(f)
 }
 
 func formatFunction(f *Formatter) stateFn {
 	if f.token.Typ == lex.ItemFunction {
-		fmt.Printf("%s ", f.token.Val)
+		f.Output.WriteString(f.token.Val + " ")
 	}
 
 	switch t := f.next().Typ; {
 	case t == lex.ItemEOF:
-		fmt.Fprintf(os.Stderr, "unexpected EOF wanted identifier\n")
-		return nil
+		return errorf("unexpected EOF wanted identifier\n")
 	case t == lex.ItemComment:
 		f.printComment()
 	case t == lex.ItemIdentifier:
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("invalid identifier: trailing dot '.'")
+		}
 		if f.next().Typ == lex.ItemLeftParen {
 			printChar(f)
 			return format
 		}
+		return errorf("expected left Parenthesis got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
-	fmt.Print("\n")
-	fmt.Fprintf(os.Stderr, "\nexpected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-	return nil
-	// return formatFunction
+	return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 }
 
 func formatStruct(f *Formatter) stateFn {
 	if f.token.Typ == lex.ItemStruct {
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("invalid identifier: trailing dot '.'")
+		}
 	}
 	switch t := f.next().Typ; {
 	case t == lex.ItemEOF:
-		fmt.Fprintf(os.Stderr, "unexpected EOF wanted identifier\n")
-		return nil
+		return errorf("unexpected EOF wanted identifier\n")
 	case t == lex.ItemComment:
 		f.printComment()
 	case t == lex.ItemIdentifier:
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("invalid identifier: trailing dot '.'")
+		}
 		return format
 	default:
-		fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
 	return formatStruct
 }
 
 func formatVar(f *Formatter) stateFn {
-	printIdentifier(f)
+	if !printIdentifier(f) {
+		return errorf("invalid identifier: trailing dot '.'")
+	}
 	for notdone := true; notdone; {
 		if f.next().Typ == lex.ItemIdentifier {
-			printIdentifier(f)
+			if !printIdentifier(f) {
+				return errorf("invalid identifier: trailing dot '.'")
+			}
 			if f.next().Typ == lex.ItemChar {
 				switch f.token.Val {
 				case ",":
@@ -210,40 +225,53 @@ func formatVar(f *Formatter) stateFn {
 					printChar(f)
 					notdone = false
 				default:
-					fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-					return nil
+					return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+
 				}
 			} else {
-				fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-				return nil
+				return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+
 			}
 		} else {
-			fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return nil
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+
 		}
 	}
 	switch f.next().Typ {
 	case lex.ItemIdentifier:
-		printIdentifier(f)
-	case lex.ItemArray:
-		if !printArray(f) {
-			return nil
+		if !printIdentifier(f) {
+			return errorf("invalid identifier: trailing dot '.'")
 		}
+	case lex.ItemArray:
+		return formatArray // errorf("Bad array syntax")
 	default:
-		fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+
 	}
 	return format
 }
 
-func printIdentifier(f *Formatter) {
-	str := "%s"
-	switch f.peek().Val {
-	case "{", "}", "(", ")", "[", "]", "|", ",", ":", ";", ".":
+func printIdentifier(f *Formatter) bool {
+	switch i := f.peek(); {
+	case i.Val == "{", i.Val == "}", i.Val == "(", i.Val == ")", i.Val == "[", i.Val == "]", i.Val == "|", i.Val == ",", i.Val == ":", i.Val == ";":
+		f.Output.WriteString(f.token.Val)
+	case i.Typ == lex.ItemDot:
+		f.Output.WriteString(f.token.Val)
+		f.next()
+		return printDot(f)
 	default:
-		str += " "
+		f.Output.WriteString(f.token.Val + " ")
 	}
-	fmt.Printf(str, f.token.Val)
+	return true
+}
+
+func printDot(f *Formatter) bool {
+	f.Output.WriteString(".")
+	if f.peek().Typ == lex.ItemIdentifier {
+		f.next()
+		return printIdentifier(f)
+	}
+	return false
 }
 
 func printOperator(f *Formatter) {
@@ -251,49 +279,48 @@ func printOperator(f *Formatter) {
 	switch f.token.Val {
 	case "|", "!":
 	case "+", "-":
-		switch f.pToken.Typ {
-		case lex.ItemLeftParen, lex.ItemOperator, lex.ItemReturn:
+		switch f.previousToken.Typ {
+		case lex.ItemLeftParen, lex.ItemOperator, lex.ItemReturn, lex.ItemCase:
 		default:
-			str += " "
+			str = "%s "
 		}
 	default:
-		str += " "
+		str = "%s "
 	}
-	switch f.pToken.Val {
+	switch f.previousToken.Val {
 	case ")", "]":
 		str = " " + str
 	}
-	fmt.Printf(str, f.token.Val)
+	f.Output.WriteString(fmt.Sprintf(str, f.token.Val))
 }
 
 func formatConditional(f *Formatter) stateFn {
 	switch f.token.Typ {
 	case lex.ItemIf, lex.ItemWhile, lex.ItemFor, lex.ItemSwitch:
-		tok := f.token.Val
-		if f.pToken.Typ == lex.ItemElse {
-			fmt.Print(" ")
+		if f.previousToken.Typ == lex.ItemElse {
+			f.Output.WriteString(" ")
 		}
 		if f.next().Typ != lex.ItemLeftParen {
-			fmt.Fprintf(os.Stderr, "expected parenthesis got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return nil
+			return errorf("expected parenthesis got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 		}
-		fmt.Printf("%s (", tok)
+		f.Output.WriteString(f.previousToken.Val + " (")
 		f.parenDepth = 1
 	}
 
 	switch t := f.next().Typ; {
 	case t == lex.ItemEOF:
-		fmt.Fprintf(os.Stderr, "unexpected EOF wanted identifier\n")
-		return nil
+		return errorf("unexpected EOF wanted identifier\n")
 	case t == lex.ItemComment:
 		f.printComment()
 	case t == lex.ItemOperator:
 		printOperator(f)
 	case t == lex.ItemIdentifier, t == lex.ItemNumber, t == lex.ItemString, t == lex.ItemBool:
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
 	case isChar(t):
 		if f.token.Val == ";" {
-			fmt.Print("; ")
+			f.Output.WriteString("; ")
 		} else {
 			printChar(f)
 		}
@@ -319,10 +346,10 @@ func formatNewLine(f *Formatter) stateFn {
 
 	switch t := f.peek().Typ; {
 	case t == lex.ItemEOF:
+		f.Output.WriteString("\n")
 		return nil
 	case t == lex.ItemError:
-		fmt.Print("error:", f.token.Val)
-		return nil
+		return errorf("error: " + f.token.Val)
 	case t == lex.ItemCase:
 		printNewline(f)
 		f.scopeLevel = f.scopeLevel[:len(f.scopeLevel)-1]
@@ -337,20 +364,21 @@ func formatNewLine(f *Formatter) stateFn {
 }
 
 func formatEnum(f *Formatter) stateFn {
-	printIdentifier(f)
-	if f.next().Typ != lex.ItemIdentifier {
-		fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+	if !printIdentifier(f) {
+		return errorf("invalid identifier: trailing dot '.'")
 	}
-	printIdentifier(f)
+	if f.next().Typ != lex.ItemIdentifier {
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+	}
+	if !printIdentifier(f) {
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+	}
 	if f.next().Typ != lex.ItemLeftBrace {
-		fmt.Fprintf(os.Stderr, "expected left brace got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected left brace got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
 
 	f.scopeLevel = append(f.scopeLevel, 1)
-	fmt.Print(" {")
-	f.newlineCount = -1
+	f.Output.WriteString(" {")
 	printNewline(f)
 	printTab(f)
 	return formatEnumIdent
@@ -358,20 +386,22 @@ func formatEnum(f *Formatter) stateFn {
 
 func formatEnumIdent(f *Formatter) stateFn {
 	if f.next().Typ != lex.ItemIdentifier {
-		fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
-	printIdentifier(f)
+	if !printIdentifier(f) {
+		return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+	}
 	switch f.peek().Val {
 	case "=":
 		f.next()
 		printOperator(f)
 		if f.peek().Typ != lex.ItemNumber {
-			fmt.Fprintf(os.Stderr, "expected Number got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return nil
+			return errorf("expected Number got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 		}
 		f.next()
-		printIdentifier(f)
+		if !printIdentifier(f) {
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
 		if f.peek().Typ == lex.ItemRightBrace {
 			return format
 		}
@@ -383,11 +413,10 @@ func formatEnumIdent(f *Formatter) stateFn {
 
 func formatEnumChar(f *Formatter) stateFn {
 	if f.next().Val != "," {
-		fmt.Fprintf(os.Stderr, "expected Comma got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return nil
+		return errorf("expected Comma got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
 	}
 
-	fmt.Print(",")
+	f.Output.WriteString(",")
 	if f.peek().Typ == lex.ItemRightBrace {
 		return format
 	}
@@ -398,95 +427,110 @@ func formatEnumChar(f *Formatter) stateFn {
 
 func formatRightBrace(f *Formatter) stateFn {
 	f.scopeLevel = f.scopeLevel[:len(f.scopeLevel)-1]
-	if f.pToken.Typ != lex.ItemLeftBrace {
-		fmt.Print("\n")
+	if f.previousToken.Typ != lex.ItemLeftBrace {
+		f.Output.WriteString("\n")
 		printTab(f)
 	}
-	fmt.Print("}")
+	f.Output.WriteString("}")
 
 	switch f.peek().Typ {
 	case lex.ItemChar, lex.ItemElse, lex.ItemRightBrace:
 		return format
 	}
-
 	return formatNewLine
 }
 
 func formatCase(f *Formatter) stateFn {
-	printIdentifier(f)
-	if !printCase(f) {
-		return nil
+	if !printIdentifier(f) {
+		return errorf("invalid identifier: trailing dot '.'")
+	}
+	switch f.next().Typ {
+	case lex.ItemLeftParen:
+		f.Output.WriteString(" (")
+		if f.next().Typ != lex.ItemIdentifier || !printIdentifier(f) {
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
+		if f.next().Typ != lex.ItemRightParen {
+			return errorf("expected parenthesis got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
+		f.Output.WriteString(")")
+		if f.next().Typ != lex.ItemIdentifier || !printIdentifier(f) {
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
+	case lex.ItemIdentifier, lex.ItemNumber, lex.ItemString:
+		if !printIdentifier(f) {
+			return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
+	case lex.ItemOperator:
+		if (f.token.Val == "+" || f.token.Val == "-") && f.peek().Typ == lex.ItemNumber {
+			printOperator(f)
+			f.next()
+			if !printIdentifier(f) {
+				return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+			}
+		} else {
+			return errorf("Invalid Operator got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+		}
 	}
 
 	if f.next().Val != ":" {
-		fmt.Fprintf(os.Stderr, "\nexpected \":\" got %s: %s %s\n", lex.Rkey[f.token.Typ], f.token.Val, f.pToken.Val)
-		return nil
+		return errorf("expected \":\" got %s: %s %s\n", lex.Rkey[f.token.Typ], f.token.Val, f.previousToken.Val)
 	}
-	fmt.Print(":")
+	f.Output.WriteString(":")
 	f.scopeLevel = append(f.scopeLevel, 1)
 	return formatNewLine
 }
 
-func printCase(f *Formatter) bool {
-	switch f.next().Typ {
-	case lex.ItemLeftParen:
-		fmt.Print(" (")
-		if f.next().Typ != lex.ItemIdentifier {
-			fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return false
-		}
-		printIdentifier(f)
-		if f.next().Typ != lex.ItemRightParen {
-			fmt.Fprintf(os.Stderr, "expected parenthesis got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return false
-		}
-		fmt.Print(")")
-		if f.next().Typ != lex.ItemIdentifier {
-			fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-			return false
-		}
-		printIdentifier(f)
-	case lex.ItemIdentifier, lex.ItemNumber, lex.ItemString:
-		printIdentifier(f)
-	}
-	return true
-}
-
-func printArray(f *Formatter) bool {
+func formatArray(f *Formatter) stateFn {
 	if f.next().Val != "<" {
-		fmt.Fprintf(os.Stderr, "expected \"<\" got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return false
+		return errorf("expected \"<\" got %s: %s %s\n", lex.Rkey[f.token.Typ], f.token.Val, f.previousToken.Val)
 	}
-	fmt.Printf("array<")
+	f.Output.WriteString("array<")
 	switch f.next().Typ {
 	case lex.ItemIdentifier:
-		fmt.Print(f.token.Val)
+		for {
+			f.Output.WriteString(f.token.Val)
+			if f.peek().Typ != lex.ItemDot {
+				break
+			}
+			f.next()
+			f.Output.WriteString(".")
+			if f.peek().Typ != lex.ItemIdentifier {
+				return errorf("expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
+			}
+			f.next()
+		}
 	case lex.ItemArray:
-		printArray(f)
+		return formatArray
 	default:
-		fmt.Fprintf(os.Stderr, "expected Identifier got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return false
+		return errorf("Bad array syntax")
 	}
 	if f.next().Val != ">" {
-		fmt.Fprintf(os.Stderr, "expected \">\" got %s: %s\n", lex.Rkey[f.token.Typ], f.token.Val)
-		return false
+		return errorf("expected \">\" got %s: %s %s\n", lex.Rkey[f.token.Typ], f.token.Val, f.previousToken.Val)
 	}
-	fmt.Print(">")
-	return true
+	for f.peek(); f.nextToken.Val == ">"; {
+		f.next()
+		f.Output.WriteString(">")
+	}
+	if f.peek().Typ == lex.ItemOperator && f.peek().Val != ">" {
+		f.Output.WriteString("> ")
+	} else {
+		f.Output.WriteString(">")
+	}
+	return format
 }
 
 func printTab(f *Formatter) {
-	// fmt.Print(f.scopeLevel)
 	for _, t := range f.scopeLevel {
 		for i := 0; i < t; i++ {
-			fmt.Print("\t")
+			f.Output.WriteString("\t")
 		}
 	}
 }
 
 func isChar(t lex.ItemType) bool {
 	switch t {
-	case lex.ItemChar, lex.ItemLeftParen, lex.ItemRightParen, lex.ItemLeftBrace, lex.ItemRightBrace:
+	case lex.ItemChar, lex.ItemLeftParen, lex.ItemRightParen, lex.ItemLeftBrace, lex.ItemRightBrace, lex.ItemDot:
 		return true
 	default:
 		return false
@@ -496,40 +540,32 @@ func isChar(t lex.ItemType) bool {
 func printChar(f *Formatter) stateFn {
 	switch f.token.Val {
 	case ":", ",":
-		fmt.Printf("%s ", f.token.Val)
+		f.Output.WriteString(f.token.Val + " ")
 	case ";":
-		fmt.Print(";")
+		f.Output.WriteString(";")
 		if len(f.scopeLevel) > 0 {
 			f.scopeLevel[len(f.scopeLevel)-1] = 1
 		}
 		return formatNewLine
 	case "{":
-		fmt.Print(" {")
+		f.Output.WriteString(" {")
 		f.scopeLevel = append(f.scopeLevel, 1)
-		f.newlineCount = -1
 		return formatNewLine
 	case "}":
 		return formatRightBrace
+	case ".":
+		printDot(f)
 	default:
-		fmt.Print(f.token.Val)
+		f.Output.WriteString(f.token.Val)
 	}
 	return format
 }
 
 func printNewline(f *Formatter) {
-	if f.newlineCount == -1 {
-		f.peek()
-		if f.newlineCount < 1 {
-			f.newlineCount = 1
-		}
-	}
 	f.peek()
-	if f.nToken.Typ != lex.ItemEOF {
-		for i := 0; i < f.newlineCount-1; i++ {
-			fmt.Print("\n")
+	if f.nextToken.Typ != lex.ItemEOF {
+		for i := 0; i < f.newlineCount; i++ {
+			f.Output.WriteString("\n")
 		}
-		fmt.Print("\n")
-	} else {
-		fmt.Print("\n")
 	}
 }

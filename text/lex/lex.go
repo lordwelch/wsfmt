@@ -362,18 +362,11 @@ func lexInsideAction(l *Lexer) stateFn {
 		// special look-ahead for ".field" so we don't break l.backup().
 		r = l.peek()
 		if r < '0' || '9' < r {
-			l.emit(ItemChar)
+			l.emit(ItemDot)
 			return lexInsideAction
 		}
 		fallthrough // '.' can start a number.
-	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
-		if r == '+' || r == '-' {
-			r := l.peek()
-			if (r < '0' || '9' < r) && r != '.' {
-				return lexOperator
-			}
-		}
-
+	case '0' <= r && r <= '9':
 		l.backup()
 		return lexNumber
 	case isOperator(r):
@@ -439,7 +432,7 @@ func lexIdentifier(l *Lexer) stateFn {
 Loop:
 	for {
 		switch r := l.next(); {
-		case isAlphaNumeric(r) || r == '.':
+		case isAlphaNumeric(r):
 			// absorb.
 		default:
 			l.backup()
